@@ -5,6 +5,27 @@ import type { Team } from '../types';
  */
 
 /**
+ * Calculate randomness factor based on net rating difference
+ * Similar net ratings = higher randomness (up to 3%)
+ * Very different net ratings = lower randomness (closer to 0%)
+ * @param netRtg1 - First team's net rating
+ * @param netRtg2 - Second team's net rating
+ * @returns Randomness factor (0-0.03, representing 0% to 3% impact)
+ */
+function getRandomnessFactor(netRtg1: number, netRtg2: number): number {
+  const netRtgDiff = Math.abs(netRtg1 - netRtg2);
+  
+  // When net ratings are very similar (difference < 2), use maximum randomness (3%)
+  // When net ratings are very different (difference > 25), use minimum randomness (0%)
+  // Scale linearly between these points
+  const maxDiff = 25; // Net rating difference where randomness reaches 0%
+  const randomnessPercent = Math.max(0, 1 - (netRtgDiff / maxDiff));
+  
+  // Return as a factor between 0 and 0.03 (0% to 3%)
+  return randomnessPercent * 0.03;
+}
+
+/**
  * Calculate win probability percentage between two teams
  * @param team1 - Team object with KenPom stats
  * @param team2 - Team object with KenPom stats
@@ -21,7 +42,7 @@ export function calculateWinProbability(team1: Team | null, team2: Team | null):
     defAdvantage1 * 0.20 +
     team1.sos * 0.10 +
     team1.luck * 50 * 0.05
-  ) + (17 - team1.seed) * 0.3;
+  );
   
   const offAdvantage2 = team2.offRtg - 100;
   const defAdvantage2 = 100 - team2.defRtg;
@@ -31,11 +52,16 @@ export function calculateWinProbability(team1: Team | null, team2: Team | null):
     defAdvantage2 * 0.20 +
     team2.sos * 0.10 +
     team2.luck * 50 * 0.05
-  ) + (17 - team2.seed) * 0.3;
+  );
   
   // Convert score difference to probability using sigmoid-like function
   const diff = score1 - score2;
-  const probability = 50 + (50 / (1 + Math.exp(-diff / 5)));
+  let probability = 50 + (50 / (1 + Math.exp(-diff / 5)));
+  
+  // Add randomness based on net rating similarity (0% to 3% impact)
+  const randomnessFactor = getRandomnessFactor(team1.netRtg, team2.netRtg);
+  const randomJitter = (Math.random() - 0.5) * randomnessFactor * 100; // Random jitter scaled to percentage
+  probability += randomJitter;
   
   return Math.max(5, Math.min(95, probability)); // Clamp between 5% and 95%
 }
@@ -81,13 +107,12 @@ export function predictWinner(team1: Team | null, team2: Team | null): Team | nu
     team2.luck * 50 * 0.05
   );
   
-  // Seed-based adjustment (higher seeds get small bonus, but stats matter more)
-  // This allows for upsets when lower seeds have better stats
-  const seedBonus1 = (17 - team1.seed) * 0.3; // Max 4.8 points for #1 seed
-  const seedBonus2 = (17 - team2.seed) * 0.3;
+  // Add randomness based on net rating similarity (0% to 3% impact)
+  const randomnessFactor = getRandomnessFactor(team1.netRtg, team2.netRtg);
+  const randomJitter = (Math.random() - 0.5) * randomnessFactor * 20; // Random jitter scaled to score range
   
-  const finalScore1 = score1 + seedBonus1;
-  const finalScore2 = score2 + seedBonus2;
+  const finalScore1 = score1 + randomJitter;
+  const finalScore2 = score2 - randomJitter; // Opposite jitter for team2 to maintain balance
   
   return finalScore1 > finalScore2 ? team1 : team2;
 }

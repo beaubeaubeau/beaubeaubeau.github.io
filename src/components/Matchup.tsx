@@ -12,9 +12,39 @@ interface MatchupProps {
 function Matchup({ matchup, roundKey, matchupIndex, manualMode, onSelectWinner }: MatchupProps) {
   const { team1, team2, winner } = matchup;
 
+  // Show placeholder if both teams are empty
+  if (!team1 && !team2) {
+    return (
+      <div className="matchup" style={{ opacity: 0.5 }}>
+        <div className="team">
+          <span className="team-seed">-</span>
+          <span className="team-name">TBD</span>
+        </div>
+        <div className="team">
+          <span className="team-seed">-</span>
+          <span className="team-name">TBD</span>
+        </div>
+        <div className="prediction-info">Waiting for teams...</div>
+      </div>
+    );
+  }
+
   // Handle bye cases
   if (!team1 || team1.name === 'Bye' || team1.seed === 0) {
-    if (!team2) return null;
+    if (!team2) {
+      return (
+        <div className="matchup" style={{ opacity: 0.5 }}>
+          <div className="team">
+            <span className="team-seed">-</span>
+            <span className="team-name">TBD</span>
+          </div>
+          <div className="team">
+            <span className="team-seed">-</span>
+            <span className="team-name">TBD</span>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="matchup winner">
         <div className="team selected">

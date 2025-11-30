@@ -12,7 +12,7 @@ function Round({ round, bracket, manualMode, onSelectWinner }: RoundProps) {
   const matchups = bracket[round.key] || [];
 
   return (
-    <div className="round">
+    <div className="round" data-round={round.key}>
       <div className="round-title">{round.name}</div>
       {matchups.map((matchup, index) => (
         <Matchup
