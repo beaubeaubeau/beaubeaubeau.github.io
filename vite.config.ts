@@ -3,6 +3,6 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/' // Use '/' for GitHub Pages user/organization sites
+  base: '/MarchMadness/' // Base path for March Madness app
 })
 
