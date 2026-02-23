@@ -1,10 +1,9 @@
 /**
- * Type definitions for the March Madness Bracket Predictor
+ * Type definitions for the March Madness Predictor
  */
 
 export interface Team {
   name: string;
-  seed: number;
   netRtg: number;
   offRtg: number;
   defRtg: number;
@@ -13,30 +12,21 @@ export interface Team {
   sos: number;
 }
 
-export interface Matchup {
-  team1: Team | null;
-  team2: Team | null;
-  winner: Team | null;
+export type GameSite = 'home' | 'away' | 'neutral';
+
+export interface MatchupInput {
+  team1Name: string;
+  team2Name: string;
+  year: string; // 2-digit year (e.g., "25" for 2025)
+  site: GameSite;
 }
 
-export interface Bracket {
-  round1: Matchup[];
-  round2: Matchup[];
-  round3: Matchup[];
-  round4: Matchup[];
-  round5: Matchup[];
-  round6: Matchup[];
-}
-
-export interface RoundInfo {
-  name: string;
-  key: keyof Bracket;
-  matchups: number;
-}
-
-export interface NextMatchupInfo {
-  round: keyof Bracket;
-  matchupIndex: number;
-  position: number;
+export interface PredictionResult {
+  team1: Team;
+  team2: Team;
+  winner: Team;
+  team1WinProbability: number;
+  team2WinProbability: number;
+  site: GameSite;
 }
 
